@@ -1,0 +1,140 @@
+function [import, ILAB, flag_error] = GA_ilabConvertTobii_TX300(varargin)
+
+global eye;
+
+path = varargin{1};
+file = varargin{2};
+flag_error = 0;
+ILAB=[];
+import=[];
+
+%=====================================================================
+% SETUP ILAB VARIABLE SECTION
+%=====================================================================
+
+[import, flag_error] = GA_TOBI2GA(path,file);
+
+if flag_error
+    return;
+end;
+
+[ILAB, flag_error] = GA_ilabConvert('Tobii',path, file, import);
+
+% convert TOBII data (0<x,y>1) in ilab format (pixel): 
+ILAB.data(:,1) = round(ILAB.data(:,1) * ILAB.coordSys.screen(1));
+ILAB.data(:,2) = round(ILAB.data(:,2) * ILAB.coordSys.screen(2));
+
+function [import, flag_error] = GA_TOBI2GA(path_raw, file)
+% GA_TOBI2GA -> conversion of TOBI ascii files to GazeAlyze eye variable
+global eye;
+
+flag_error=0;
+import=[];
+%--------------------------------------------------------------------------
+% Open file and segment
+%--------------------------------------------------------------------------
+
+fid = fopen(fullfile(path_raw,file), 'r');
+frewind(fid);
+labels = textscan(fid, '%[^\n]',1);
+labels = regexp(labels{1}, '\t', 'split');
+time_col_microsec = find(strcmp('TimestampMicrosec',labels{1}));
+time_col_sec = find(strcmp('TimestampSec',labels{1}));
+%here cols with point of regard will be determined. already in pixel.. extend for other cols
+x_col = str2double(eye.cond.eprime.gaze_x);
+y_col = str2double(eye.cond.eprime.gaze_y);
+mark_col = str2num(eye.cond.eprime.marker);
+frewind(fid);
+data_time = textscan(fid, [repmat('%*s',1,time_col_sec-1) '%s%s%*[^\n]'], 'delimiter','\t', 'HeaderLines', 1);
+frewind(fid);
+data_x_gaze = textscan(fid, [repmat('%*s',1,x_col-1) '%s%*[^\n]'], 'delimiter','\t', 'HeaderLines', 1);
+frewind(fid);
+data_y_gaze = textscan(fid, [repmat('%*s',1,y_col-1) '%s%*[^\n]'], 'delimiter','\t', 'HeaderLines', 1);
+for i=1:length(mark_col)
+    frewind(fid);
+    marker(i) = textscan(fid, [repmat('%*s',1,mark_col(i)-1) '%s%*[^\n]'], 'delimiter','\t', 'HeaderLines', 1);    
+end;
+fclose(fid);
+data_marker={};
+for i=1:length(mark_col)
+    data_marker = strcat( data_marker , marker{i}');    
+end;
+prefix=cell(1
+microsec=strcat('000000', data_time{2});
+microsec = cellfun(@x(end-5:end),microsec);
+data_time= strcat(data_time{1}, '.', microsec);
+data_time=cellfun(@str2num,data_time);
+data_x_gaze = transform_dat(data_x_gaze{1});
+data_y_gaze = transform_dat(data_y_gaze{1});
+data_marker = data_marker';
+
+%transform marker into start/stop, because permanent sync is not covered in GA_ilabConvert
+[marker_val, m, n]=unique(data_marker);
+diff_n= diff([n(1); n]);
+trial_start = find(diff_n);
+trial_stop  = trial_start - 1;
+trial_start  = [1; trial_start];
+trial_stop  = [trial_stop; length(data_marker)];
+%delete one sample trials
+tf_start = ismember(trial_start, trial_stop);
+tf_stop = ismember(trial_stop, trial_start);
+trial_start(tf_start)=[];
+trial_stop(tf_stop)=[];
+
+marker_trans = cell(1, length(trial_start) + length(trial_stop));
+marker_trans(1:2:end) = data_marker(trial_start);
+marker_trans(2:2:end) = {'stop'};
+marker_time = zeros(1,length(trial_start) + length(trial_stop));
+marker_time(1:2:end) = data_time(trial_start);
+marker_time(2:2:end) = data_time(trial_stop);
+
+
+
+%--------------------------------------------------------------------------
+% fill eye-variable with fileinformationns and data
+%--------------------------------------------------------------------------
+
+%can be extended..
+import.path = eye.dir.conv;
+import.fname = file;
+import.header.FrameRate = eye.cond.eprime.aqu_rate;
+import.header.ProductVersion = 'TOBII/Eprime: not further specified';
+filpar = dir(fullfile(path_raw,file));
+import.header.date = filpar.date;
+import.header.time = '';
+import.header.data_labels =labels;
+
+if isempty(eye.defaultscreen)
+    error('TOBII/Eprime data provides no information about the screen size. Please set screen size first in the menu under Preprocessing..');
+else
+    %screensize info is not provided
+    import.header.ScreenSize = sprintf('%d %d', eye.defaultscreen(2), eye.defaultscreen(4));
+end;
+%--------------------------------------------------------------------------
+% Eprime Marker seems to be permanent sync, each data row has a label to which trialsegemnt it belongs to 
+%--------------------------------------------------------------------------
+import.marker.mod = 'permanent sync';
+
+
+import.marker.values = marker_trans';
+import.marker.times  = marker_time';
+%x y data between 0 and 1
+%only POR data will be imported, change for special needs..
+import.data =[data_time data_x_gaze data_y_gaze];
+
+function dat_out = transform_dat(dat_in)
+
+dat_in = cellfun(@(x) strrep(x,'.',''), dat_in, 'UniformOutput', false);
+dat_in = cellfun(@(x) [x(1) '.' x(2:end)],dat_in, 'UniformOutput', false);
+dat_in = cellfun(@(x) strrep(x,'-.','-'), dat_in, 'UniformOutput', false);
+dat_in = cellfun(@(x) strrep(x,'.,','.'), dat_in, 'UniformOutput', false);
+dat_in = cellfun(@str2num, dat_in, 'UniformOutput', false);
+dat_in(cellfun('isempty', dat_in))={-1};
+dat_out = cell2mat(dat_in);
+
+
+
+
+
+
+

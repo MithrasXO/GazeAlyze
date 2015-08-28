@@ -1,0 +1,2 @@
+Before you can play around with the demo project you have to adjust the directories. 
+Everything else should be fine.
