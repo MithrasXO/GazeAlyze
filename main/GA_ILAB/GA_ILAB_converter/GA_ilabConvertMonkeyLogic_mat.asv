@@ -1,0 +1,73 @@
+function [import, ILAB, flag_error] = GA_ilabConvertISCAN_ascii_v400(varargin)
+
+global eye;
+
+path = varargin{1};
+file = varargin{2};
+flag_error = 0;
+ILAB=[];
+import=[];
+
+%=====================================================================
+% SETUP ILAB VARIABLE SECTION
+%=====================================================================
+
+[import, flag_error] = GA_MonkeyLogic2GA(path,file);
+
+if flag_error
+    return;
+end;
+
+[ILAB, flag_error] = GA_ilabConvert('MonkeyLogic',path, file, import);
+% convert MonkeyLogic data (viewing angle, 0,0=middle of screen) in ilab
+% format (pixel, 0,0=left upper corner)
+ILAB.data(:,1) = round(ILAB.data(:,1) * import.BHV.PixelsPerDegree) - import.BHV.ScreenXresolution / 2;
+ILAB.data(:,2) = round(ILAB.data(:,2) * import.BHV.PixelsPerDegree) - import.BHV.ScreenYresolution / 2;
+
+function [import, flag_error] = GA_MonkeyLogic2GA(path_raw, file)
+% GA_ISCAN2GA -> conversion of ISCAN ascii files to GazeAlyze eye variable
+global eye;
+
+flag_error=0;
+import=[];
+%--------------------------------------------------------------------------
+% Open file and segment
+%--------------------------------------------------------------------------
+
+import = load(fullfile(path_raw,file));
+
+%--------------------------------------------------------------------------
+% fill  import variable with file information and data
+%--------------------------------------------------------------------------
+
+%can be extended..
+import.path = eye.dir.conv;
+import.fname = file;
+import.header.date = import.BHV.StartTime;
+import.header.time = '';
+import.header.FrameRate = import.BHV.AnalogInputFrequency;
+import.header.ProductVersion = 'MonkeyLogic (.mat struct from bhv_read)';
+import.header.ScreenSize = [num2str(import.BHV.ScreenXresolution) ' ' num2str(import.BHV.ScreenYresolution)];
+
+%--------------------------------------------------------------------------
+% trial structure import
+%--------------------------------------------------------------------------
+import.marker.values = [];
+import.marker.times  = [];
+import.data = [];
+marktime_start=0;
+for i=1:length(import.BHV.TrialNumber)       
+    marktimes = import.BHV.CodeTimes{i};
+    marktimes = marktimes - marktimes(find(import.BHV.CodeNumbers{i}==9,1,'first')) + marktime_start;
+    marktimes = marktimes(import.BHV.CodeNumbers{i}~=9 & import.BHV.CodeNumbers{i}~=18) ./ import.BHV.AnalogInputFrequency;
+    markvalues = import.BHV.CodeNumbers{i};
+    markvalues = markvalues(import.BHV.CodeNumbers{i}~=9 & import.BHV.CodeNumbers{i}~=18);    
+    %concatenated marker trial segements for ILAB
+    import.marker.times  = [import.marker.times; marktimes];
+    import.marker.values = [import.marker.values; markvalues];    
+    %concatenated data trial segements for ILAB
+    dattimes =  (marktime_start - 1 + (1:length(import.BHV.AnalogData{1,i}.EyeSignal))' .* (1000 / import.BHV.AnalogInputFrequency));
+    marktime_start = marktime_start + (1 + length(import.BHV.AnalogData{1,i}.EyeSignal)) * 1000 / import.BHV.AnalogInputFrequency;
+    import.data =[import.data; [dattimes import.BHV.AnalogData{1,i}.EyeSignal(:,1) import.BHV.AnalogData{1,i}.EyeSignal(:,2)]];
+end;
+

@@ -1,0 +1,412 @@
+function [eyemove, pupil, snr] = GA_ilabData2WSCB()
+
+
+global eye;
+
+ILAB = eye.ILAB;
+% ILABDATA2WSCB -- puts selected data in base workspace
+%   ILABDATA2WSCB(action) assigns data to the base workspace using 
+%   the assignin function. The user can put either raw data (from ILAB)
+%   or processed data (from PlotParms) in the base workspace. Data can
+%   be interpolated so that one might use it as a covariate for fMRI
+%   for example.
+
+% Authors: Darren Gitelman
+% $Id: ilabData2WSCB.m 1.4 2004-04-19 22:06:54-05 drg Exp drg $
+
+action='ok';
+
+switch lower(action)
+    
+case 'ok'
+    DATA_VARS = [];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %  Assign the requested results to the workspace
+    
+    % Assign initial values to variables
+    valEM   = 1;
+    valP    = 1;
+    valDisp = 1;
+    valRaw  = 1;
+    valRE   = 1;
+    
+%     % Get which class of data to export
+%     hEM     = findobj('Tag','EyeMoveCkBox');
+%     valEM   = get(hEM,'Value');
+%     if isempty(valEM)
+%         valEM = 0;
+%     end
+%     hP      = findobj('Tag','PupilCkBox');
+%     valP    = get(hP,'Value');
+%     if isempty(valP)
+%         valP = 0;
+%     end
+%     
+%     % Get whether to export raw or displayed data
+%     hRaw    = findobj('Tag','RawCkBox');
+%     valRaw  = get(hRaw,'Value');
+%     hDisp   = findobj('Tag','DisplayCkBox');
+%     valDisp = get(hDisp,'Value');
+%     
+    GA_ilabGetPlotParms;
+%     
+%     hRE     = findobj('Tag','ResampleEdit');
+%     chk     = 0;
+% 
+%     valRE   = str2num(get(hRE,'String'));
+%     % check validity of interpolation choice
+%     if ~isnumeric(valRE) | valRE < 0 | prod(size(valRE)) ~= 1 | isempty(valRE)
+%         h = warndlg('Data resampling interval must be a real number greater than or equal to 0.',...
+%             'ILAB WARNING','modal');
+%         uiwait(h)
+%         return
+%     end
+%     valRE   = round(valRE * ILAB.acqRate);
+%     
+%     % Check if at least one check box from class and type each has been chosen.
+%     if (valEM == 0 & valP == 0) | (valRaw == 0 & valDisp == 0)
+%         h = warndlg('Choose both data class and data type to export data, or click cancel.',...
+%             'ILAB WARNING','modal');
+%         uiwait(h)
+%         return
+%     end
+ 
+    
+    % Commented out because we don't allow the user to define intervals to export.
+    
+    %     hSE     = findobj('Tag','StartEdit');
+    %     valSE   = str2num(get(hSE,'String'));
+    %     if valSE == 0
+    %         valSE = 1;
+    %     else
+    %         valSE = round(valSE * ILAB.acqIntvl);
+    %         if valSE < 1
+    %             valSE = 1;
+    %         end
+    %     end
+    %     hEE     = findobj('Tag','EndEdit');
+    %     valEE   = str2num(get(hEE,'String'));
+    %     valEE   = round(valEE * ILAB.acqIntvl);
+    %     if valEE > length(ILAB.data)
+    %         valEE = length(ILAB.data);
+    %     end
+    
+    
+    eyemove.data.raw      = [];
+    eyemove.data.display  = [];
+    
+    pupil.data.raw        = [];
+    pupil.data.display    = [];
+    
+    % Export eye movement data
+    if (valEM == 1)
+        DATA_VARS = {'eyemove'};
+        % raw data
+        if (valRaw == 1)
+            for i = 1:size(ILAB.index,1)
+                tmp      = ILAB.data(ILAB.index(i,1):ILAB.index(i,2),1:2);
+                if valRE > 0
+                    % interpolate data
+                    intvl = ILAB.index(i,2)-ILAB.index(i,1) + 1;
+                    eyemove.data.raw{i} = interp1(1:intvl,tmp,1:valRE:intvl);
+                else
+                    eyemove.data.raw{i} = tmp;
+                end
+            end
+        end
+        if (valDisp == 1) % && 
+            % Display data
+            for i = 1:size(eye.PP.index,1)
+                tmp      = eye.PP.data(eye.PP.index(i,1):eye.PP.index(i,2),1:2);
+                if valRE > 0
+                    % interpolate data
+                    intvl = eye.PP.index(i,2)-eye.PP.index(i,1) + 1;
+                    eyemove.data.display{i} = interp1(1:intvl,tmp,1:valRE:intvl);
+                else
+                    eyemove.data.display{i} = tmp;
+                end
+            end
+        end
+    end
+    % Export pupil data
+    if (valP == 1)
+        DATA_VARS = [DATA_VARS; {'pupil'}];
+        % raw data
+        if (valRaw == 1)
+            for i = 1:size(ILAB.index,1)
+                tmp      = ILAB.data(ILAB.index(i,1):ILAB.index(i,2),4);
+                if valRE > 0
+                    % interpolate data
+                    intvl = ILAB.index(i,2)-ILAB.index(i,1) + 1;
+                    pupil.data.raw{i} = interp1(1:intvl,tmp,1:valRE:intvl);
+                else
+                    pupil.data.raw{i} = tmp;
+                end
+            end
+        end
+        if (valDisp == 1)
+            % Display data
+            for i = 1:size(eye.PP.index,1)
+                tmp      = eye.PP.data(eye.PP.index(i,1):eye.PP.index(i,2),4);
+                if valRE > 0
+                    % interpolate data
+                    intvl = eye.PP.index(i,2)-eye.PP.index(i,1) + 1;
+                    pupil.data.display{i} = interp1(1:intvl,tmp,1:valRE:intvl);
+                else
+                    pupil.data.display{i} = tmp;
+                end
+            end
+        end
+    end
+    %fprintf('\n')
+    for j = 1:length(DATA_VARS)            
+        var1 = DATA_VARS{j};
+        str = DATA_VARS{j};
+        var1 = eval(var1);
+        eval('assignin(''base'',str,var1)')
+        %fprintf('The variable %s is in the base workspace.\n',str);
+    end
+    %fprintf('\n')
+    
+    %11. signal noise ratio estimate
+%     snr = mean((mean(eye.PP.data(1:2,:)).^2 + var(eye.PP.data(1:2,:))) / ...
+%         ((mean(ILAB.data(1:2,:)).^2 + var(ILAB.data(1:2,:))) - (mean(eye.PP.data(1:2,:)).^2 + var(eye.PP.data(1:2,:)))));
+    snr = (mean(cellfun(@mean,(cellfun(@mean,eyemove.data.display,'UniformOutput',false)))).^2 ...
+          + var(cellfun(@var,(cellfun(@var,eyemove.data.display,'UniformOutput',false))))) / ...
+          (mean(cellfun(@mean,(cellfun(@mean,eyemove.data.raw,'UniformOutput',false)))).^2 --+ var(cellfun(@var,(cellfun(@var,eyemove.data.raw,'UniformOutput',false)))) - (mean(eye.PP.data(1:2,:)).^2 + var(eye.PP.data(1:2,:)))));
+    
+    
+    return
+    
+case 'cancel'
+    
+case 'init'
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %  Initialize the UI controls:
+    %  Window & Result -  Checkboxes
+    %  OK  -- Put selected results in base workspace
+    %  Cancel
+    %  _______________________________________________________________________
+    
+    % ------------------------------------------------------------
+    % Figure parameters: width, height, background color
+    % ------------------------------------------------------------
+    fw = 240;
+    fh = 350;
+    ss = get(0,'screensize');
+    bgColor = [1 1 1]*.8;
+    ILAB = ilabGetILAB;
+    
+    delete(findobj('Tag','Data2Base_UI'))
+    
+    f = figure('Color',[1 1 1]*.8,'Name','Data to Base Workspace',...
+        'NumberTitle','off','Resize','off','Units','pixels',...
+        'Menubar','none','Position',[(ss(3)/2)-120 (ss(4)/2)-175 fw fh],...
+        'WindowStyle', 'modal', 'Tag','Data2Base_UI');
+    
+    h = uicontrol(f,'Style','frame',...
+        'Units','normalized','Position',[-.01 -.01 1.01 1.01],...
+        'BackgroundColor',bgColor,...
+        'Tag','Data2BaseFrame');
+    
+    
+    bh = 24;   % checkbox height (pixels)
+    bl = 32 ;
+    b  =  332;  % bottom of control in pixels.
+    
+    %  -----------------------------------------------------------
+    %  Data Selection Section
+    %  -----------------------------------------------------------
+    
+    h = uicontrol(f,'Style','frame',...
+        'Position',[5 275 230 65],...
+        'BackgroundColor',bgColor);
+    
+    h = uicontrol(f,'Style','text',...
+        'Position',[10 b 90 15],...
+        'BackgroundColor',bgColor,...
+        'horizontalalignment','left',...
+        'String','  Data Class');
+    
+    b = b - 25;
+    
+    h = uicontrol(f,'Style','checkbox',...
+        'Position',[bl b 148 bh],...
+        'backgroundColor',bgColor,...
+        'HorizontalAlignment','left',...
+        'String','Eye Movement Data',...
+        'Value', 0,...
+        'Tag', 'EyeMoveCkBox');
+    
+    b = b - bh;
+    
+    if size(ILAB.data,2) >= 4
+        h = uicontrol(f,'Style','checkbox',...
+            'Position',[bl b 148 bh],...
+            'backgroundColor',bgColor,...
+            'HorizontalAlignment','left',...
+            'String','Pupil Data',...
+            'Value', 0,...
+            'Tag', 'PupilCkBox');
+    end
+    
+    %  -----------------------------------------------------------
+    %  Data Type Section
+    %  -----------------------------------------------------------
+    
+    h = uicontrol(f,'Style','frame',...
+        'Position',[5 195 230 65],...
+        'BackgroundColor',bgColor);
+    
+    b = b - bh - 8;
+    
+    h = uicontrol(f,'Style','text',...
+        'Position',[10 b 70 15],...
+        'BackgroundColor',bgColor,...
+        'horizontalalignment','left',...
+        'String','  Data Type');
+    
+    
+    b = b - 25;
+    
+    h = uicontrol(f,'Style','checkbox',...
+        'Position',[bl b 148 bh],...
+        'backgroundColor',bgColor,...
+        'HorizontalAlignment','left',...
+        'String','Raw',...
+        'Value', 0,...
+        'Tag', 'RawCkBox');
+    
+    b = b - bh;
+    
+    h = uicontrol(f,'Style','checkbox',...
+        'Position',[bl b 148 bh],...
+        'backgroundColor',bgColor,...
+        'HorizontalAlignment','left',...
+        'String','Displayed',...
+        'Value', 0,...
+        'Tag', 'DisplayCkBox');
+    
+    %  -----------------------------------------------------------
+    %  Interval Section
+    %  -----------------------------------------------------------
+    
+    h = uicontrol(f,'Style','frame',...
+        'Position',[5 115 230 65],...
+        'BackgroundColor',bgColor);
+    
+    % This section intentionally commented out until I sort out the best interface for
+    % defining intervals. 
+    
+    %     b = b - bh - 8;
+    %     
+    %     h = uicontrol(f,'Style','text',...
+    %         'Position',[10 b 75 15],...
+    %         'BackgroundColor',bgColor,...
+    %         'horizontalalignment','left',...
+    %         'String','  Data Interval');
+    %     
+    %     b = b - 30;
+    %     
+    %     h = uicontrol(f,'Style','edit',...
+    %         'Position',[bl b 60 bh],...
+    %         'backgroundColor',[1 1 1],...
+    %         'HorizontalAlignment','center',...
+    %         'String','0',...
+    %         'Tag', 'StartEdit',...
+    %         'Callback',['me = gcbo;',...
+    %             'if isempty(get(me,''string'')),',...
+    %             'set(me,''string'',''0'');',...
+    %             'end'],...
+    %         'ToolTipString','Start time in seconds or 0.');
+    %     
+    %     % Callback to make sure edit box is not empty
+    %     h = uicontrol(f,'Style','edit',...
+    %         'Position',[148 b 60 bh],...
+    %         'backgroundColor',[1 1 1],...
+    %         'HorizontalAlignment','center',...
+    %         'String',sprintf('%0.2f',length(ILAB.data)/ILAB.acqRate),...
+    %         'Tag', 'EndEdit',...
+    %         'Callback',['me = gcbo;',...
+    %             'if isempty(get(me,''string'')),',...
+    %             'ILAB = ilabGetILAB;',...
+    %             'set(me,''string'',sprintf(''%0.2f'',length(ILAB.data)/ILAB.acqRate));',...
+    %             'end'],...
+    %         'ToolTipString','End time in seconds or type end.');
+    %     
+    %     b = b - 22;
+    %     
+    %     h = uicontrol(f,'Style','text',...
+    %         'Position',[bl b 60 bh],...
+    %         'backgroundColor',bgColor,...
+    %         'HorizontalAlignment','center',...
+    %         'String','Start Time');
+    %     
+    %     h = uicontrol(f,'Style','text',...
+    %         'Position',[148 b 60 bh],...
+    %         'backgroundColor',bgColor,...
+    %         'HorizontalAlignment','center',...
+    %         'String','End Time');
+    
+    %  -----------------------------------------------------------
+    %  Interpolate Section
+    %  -----------------------------------------------------------
+    
+    %     h = uicontrol(f,'Style','frame',...
+    %         'Position',[5 35 230 65],...
+    %         'BackgroundColor',bgColor);
+    
+    b = b - bh - 5;
+    
+    h = uicontrol(f,'Style','text',...
+        'Position',[10 b 100 15],...
+        'BackgroundColor',bgColor,...
+        'horizontalalignment','left',...
+        'String','  Data Resampling');
+    
+    b = b - 30;
+    
+    h = uicontrol(f,'Style','edit',...
+        'Position',[bl b 60 bh],...
+        'backgroundColor',[1 1 1],...
+        'HorizontalAlignment','center',...
+        'String','0',...
+        'Tag', 'ResampleEdit',...
+        'Callback',['me = gcbo;',...
+            'if isempty(get(me,''string'')),',...
+            'set(me,''string'',''0'');',...
+            'end'],...
+        'ToolTipString','Enter 0 for no resampling, or a time in seconds to resample at that interval.');
+    
+    b = b - 22;
+    
+    h = uicontrol(f,'Style','text',...
+        'Position',[8 b 100 25],...
+        'backgroundColor',bgColor,...
+        'HorizontalAlignment','center',...
+        'String','Resampling Interval (secs)');
+    
+    b = b - bh;
+    
+    
+    %  -----------------------------------------------------------		
+    %  OK & Cancel Buttons
+    %  -----------------------------------------------------------		
+    h = uicontrol(f,'Style','pushbutton',...
+        'Position',[fw-2*64-12 8 64 24],...
+        'String','OK',...
+        'BackgroundColor',[.8 1.0 .8],...
+        'CallBack','ilabData2WSCB(''OK'')');
+    
+    h = uicontrol(f,'Style','pushbutton',...
+        'Position',[fw-64-4 8 64 24],...
+        'String','Cancel',...
+        'BackgroundColor',[1.0 1.0 .8],...
+        'CallBack','ilabData2WSCB(''Cancel'')');
+    
+    return
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+end

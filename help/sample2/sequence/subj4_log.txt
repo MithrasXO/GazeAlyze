@@ -1,0 +1,19 @@
+Experiment: A
+VPN: subj4
+Geschlecht, 1 männlich, 2 weiblich
+Emotion 1 Freude , 2 Furcht , 3 Ärger
+correct 1 richtig, 0 falsch
+
+trial	bildname	gender	emotion	picnr	rt	choice	correct	rtchoice
+1	28m_fe 	1	2	21		2	1	4118
+2	01f_an 	2	3	18	14130	3	1	3208
+3	28m_ha 	1	1	7	5065	1	1	1629
+4	28m_fe 	1	2	9	6982	2	1	1534
+5	01f_ha 	2	1	6	4332	1	1	1482
+6	28m_an 	1	3	5	3425	3	1	1159
+7	28m_ha 	1	1	4	2851	1	1	1439
+8	01f_ha 	2	1	6	4721	1	1	793
+9	01f_an 	2	3	9	6653	3	1	1072
+10	01f_fe 	2	2	7	5288	2	1	1226
+11	01f_fe 	2	2	9	6428	2	1	1585
+12	28m_an 	1	3	7	5315	3	1	1110
