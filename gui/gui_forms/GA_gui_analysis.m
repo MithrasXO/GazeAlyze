@@ -22,7 +22,7 @@ function varargout = GA_gui_analysis(varargin)
 
 % Edit the above text to modify the response to help batchjobs
 
-% Last Modified by GUIDE v2.5 12-Feb-2013 16:11:06
+% Last Modified by GUIDE v2.5 09-Dec-2015 17:22:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,6 +80,8 @@ set(handles.cb_path_spat, 'Value', mainGUIdata.data.eye.stats.scanspat);
 
 set(handles.cb_init_fix, 'Value', mainGUIdata.data.eye.stats.fix.first);
 set(handles.cb_fix_order, 'Value', mainGUIdata.data.eye.stats.fix.order);
+set(handles.cb_first_fix_ons, 'Value', mainGUIdata.data.eye.stats.fix.firstons);
+set(handles.cb_first_fix_dur, 'Value', mainGUIdata.data.eye.stats.fix.firstdur);
 
 set(handles.cb_roi_valid_all, 'Value', mainGUIdata.data.eye.stats.roi.all_stim_only);
 set(handles.cb_first_sacc_dir, 'Value', mainGUIdata.data.eye.stats.sac.firstdir);
@@ -186,6 +188,9 @@ lbstring = [lbstring; {'>>> Analysis updated <<<'}];
 [stats.fix.first, lbstring ] =  GA_gui_get(lbstring, 'first fixed roi : ', stats.fix.first, handles.cb_init_fix, 'Value');
 [stats.sac.firstdir, lbstring ] =  GA_gui_get(lbstring, 'first sacc dir : ', stats.sac.firstdir, handles.cb_first_sacc_dir, 'Value');
 [stats.sac.firstlat, lbstring ] =  GA_gui_get(lbstring, 'first sacc latenz : ', stats.sac.firstlat, handles.cb_first_sacc_lat, 'Value');
+[stats.fix.firstons, lbstring ] =  GA_gui_get(lbstring, 'first fix onset : ', stats.fix.firstons, handles.cb_first_fix_ons, 'Value');
+[stats.fix.firstdur, lbstring ] =  GA_gui_get(lbstring, 'first fix duration : ', stats.fix.firstdur, handles.cb_first_fix_dur, 'Value');
+
 [stats.fix.order, lbstring ] =  GA_gui_get(lbstring, 'roi fix order: ', stats.fix.order, handles.cb_fix_order, 'Value');
 [stats.roi.norm, lbstring ] =  GA_gui_get(lbstring, 'area normed rois: ', stats.roi.norm, handles.cb_agg_roi_norm, 'Value');
 [stats.corr, lbstring ] =  GA_gui_get(lbstring, 'use correction params: ', stats.corr, handles.cb_corr, 'Value');
@@ -955,3 +960,21 @@ function cb_roi_valid_all_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of cb_roi_valid_all
+
+
+% --- Executes on button press in cb_first_fix_ons.
+function cb_first_fix_ons_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_first_fix_ons (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_first_fix_ons
+
+
+% --- Executes on button press in cb_first_fix_dur.
+function cb_first_fix_dur_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_first_fix_dur (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_first_fix_dur

@@ -71,8 +71,8 @@ switch action
         vartrl = {'fsac','path','saclat','sacdir'};
         vartrl = vartrl(logical([eye.stats.fix.sacrat, eye.stats.scanspat,eye.stats.sac.firstlat,eye.stats.sac.firstdir]));
         %roi_related, no norming to roi size
-        varroi = {'ford', 'first'};
-        varroi = varroi(logical([eye.stats.fix.order, eye.stats.fix.first]));
+        varroi = {'ford', 'first', 'firstons', 'firstdur'};
+        varroi = varroi(logical([eye.stats.fix.order, eye.stats.fix.first, eye.stats.fix.firstons, eye.stats.fix.firstdur]));
         %++++++++++++++++++++++++++++++++++
         %header montage
         %0. global report related to file
@@ -336,7 +336,7 @@ switch action
                     %calculating variables
                     switch varlist(j).var
                         
-                        case {'daMN', 'daCM', 'na','drMN', 'drCM', 'nr','ford','first'}
+                        case {'daMN', 'daCM', 'na','drMN', 'drCM', 'nr','ford','first', 'firstons', 'firstdur'}
                             [area, inside] = roi_search(ILAB.coordSys.screen, varlist(j).roi, eye.ROI, fix_xy, fix_ons, fix_dur, pic);
                             if ~isempty(varlist(j).roirel)
                                 [area_rel, inside_rel] = roi_search(ILAB.coordSys.screen, varlist(j).roirel, eye.ROI, fix_xy, fix_ons, fix_dur, pic);
@@ -378,6 +378,18 @@ switch action
                             else
                                 varlist(j).val = int2str(find(inside,1,'first')==1);
                             end;
+                        case 'firstons'
+                            if isempty(find(inside,1,'first'))
+                                varlist(j).val = '0';
+                            else
+                                varlist(j).val = num2str(fix_ons(find(inside,1,'first')));
+                            end;
+                        case 'firstdur'
+                            if isempty(find(inside,1,'first'))
+                                varlist(j).val = '0';
+                            else
+                                varlist(j).val = num2str(fix_dur(find(inside,1,'first')));
+                            end;
                         case 'drMN'
                             varlist(j).val = num2str((mean(fix_dur(inside))/mean(fix_dur(inside_rel))) * normfac,'%10.2f');
                         case 'drCM'
@@ -410,285 +422,285 @@ switch action
             end;
         end;
 end;
-        varargout(1)= {varlist};
-        return;
-        
-        function [area, inside] = roi_search(screen, varroi, roilist, fix_xy, fix_ons, fix_dur, pic)
-        
-        %roi area
-        flag_found=0;
-        area = 0;
-        area_act = 0;
-        inside = false(size(fix_xy,1),1);
-        inside_act = [];
-        
-        
-        %++++++++++++++++
-        %screen check
-        %++++++++++++++++
-        if strcmpi('screen', varroi)
-            area = (screen(1,1) * screen(1,2));
-            inside = (0 < fix_xy(:,1) & screen(1,1) > fix_xy(:,1) & 0 < fix_xy(:,2) & screen(1,2) > fix_xy(:,2));
-            %++++++++++++++++
-            %roi tag check
-            %++++++++++++++++
-        elseif length(varroi)>4
-            if length(pic)
-                %searching for roi dimensions of valid = special pic
-                if ~isempty(pic)
-                    for i=1:length(roilist)
-                        if strcmpi(roilist(i).tag1, varroi(5:end)) ||strcmp(roilist(i).tag2, varroi(5:end))
-                            if strfind(pic, roilist(i).valid)
-                                flag_found=1;
-                                [area_act, inside_act] = checkROI(roilist(i),fix_xy, fix_ons, fix_dur);
-                                area = area + area_act;
-                                inside = inside | inside_act;
-                            end;
-                        end;
-                    end;
-                end;
-                
-                %searching for roi dimensions of valid = all
-                if ~flag_found
-                    for i=1:length(roilist)
-                        if strcmpi(roilist(i).tag1, varroi(5:end)) ||strcmp(roilist(i).tag2, varroi(5:end))
-                            if strcmpi(roilist(i).valid, 'all')
-                                flag_found=1;
-                                [area_act, inside_act] = checkROI(roilist(i),fix_xy,fix_ons, fix_dur);
-                                area = area + area_act;
-                                inside = inside | inside_act;
-                            end;
-                        end;
-                    end;
-                end;
-            end;
-            
-        end;
-        %++++++++++++++++
-        %roi name check
-        %++++++++++++++++
-        if flag_found==0
-            %searching for roi dimensions of valid = special pic
-            if ~isempty(pic)
-                for i=1:length(roilist)
-                    if strcmpi(roilist(i).name, varroi)
-                        if strfind(pic, roilist(i).valid)
-                            flag_found=1;
-                            [area, inside] = checkROI(roilist(i), fix_xy, fix_ons, fix_dur);
-                            break;
-                        end;
-                    end;
-                end;
-            end;
-            %searching for roi dimensions of valid = all
-            if ~flag_found
-                for i=1:length(roilist)
-                    if strcmpi(roilist(i).name, varroi)
-                        if strcmpi(roilist(i).valid, 'all')
-                            flag_found=1;
-                            [area, inside] = checkROI(roilist(i),fix_xy, fix_ons, fix_dur);
-                            break;
-                        end;
+varargout(1)= {varlist};
+return;
+
+function [area, inside] = roi_search(screen, varroi, roilist, fix_xy, fix_ons, fix_dur, pic)
+
+%roi area
+flag_found=0;
+area = 0;
+area_act = 0;
+inside = false(size(fix_xy,1),1);
+inside_act = [];
+
+
+%++++++++++++++++
+%screen check
+%++++++++++++++++
+if strcmpi('screen', varroi)
+    area = (screen(1,1) * screen(1,2));
+    inside = (0 < fix_xy(:,1) & screen(1,1) > fix_xy(:,1) & 0 < fix_xy(:,2) & screen(1,2) > fix_xy(:,2));
+    %++++++++++++++++
+    %roi tag check
+    %++++++++++++++++
+elseif length(varroi)>4
+    if length(pic)
+        %searching for roi dimensions of valid = special pic
+        if ~isempty(pic)
+            for i=1:length(roilist)
+                if strcmpi(roilist(i).tag1, varroi(5:end)) ||strcmp(roilist(i).tag2, varroi(5:end))
+                    if strfind(pic, roilist(i).valid)
+                        flag_found=1;
+                        [area_act, inside_act] = checkROI(roilist(i),fix_xy, fix_ons, fix_dur);
+                        area = area + area_act;
+                        inside = inside | inside_act;
                     end;
                 end;
             end;
         end;
         
-        return;
-        %fixation check whether it belongs to roi:
-        %criteria for dynamic rois: fixation duration is touched by roi duration
-            function [area, inside] = checkROI(roi, fix_xy_ref, fix_ons, fix_dur)
-                inside = false(size(fix_xy_ref,1),1);
-                if length(fix_ons)~=length(fix_dur) || length(fix_dur) ~= size(fix_xy_ref,1)
-                    error('error in filtering of fixation list');
-                end;
-                
-                if ~isfield(roi, 'time')
-                    roi.time=0;
-                end;
-                
-                for tp=1:length(roi.time)
-                    if roi.stop(tp)==0
-                        fix_xy = fix_xy_ref;
-                        
-                        %filtering relevant fixations
-                        %only valid for dynamic rois
-                        if length(roi.time) > 1
-                            roi_ons = roi.time(tp);
-                            if tp < length(roi.time)
-                                roi_dur = roi.time(tp+1) - roi_ons;
-                            else
-                                roi_dur = fix_ons(end)+ fix_dur(end) - roi_ons;
-                            end;
-                            %filtering all fixation with overlap between roi timepoint and fixation
-                            inside_time = min(repmat(roi_ons + roi_dur, length(fix_dur),1),fix_ons + fix_dur) - max(repmat(roi_ons,length(fix_ons),1),fix_ons)>=0;
-                        else
-                            inside_time = true(size(fix_xy,1),1);
-                        end;
-                        
-                        %coord trans of xy - rotation with angle around M_roi
-                        %calc the center of the roi - the rotation is in GA limited rel. to the center
-                        if ~strcmpi(roi.type,'polygon')
-                            if ~isempty(roi.angle(tp))
-                                if roi.angle(tp) ~= 0
-                                    MX_roi = (roi.x{tp}(2)-roi.x{tp}(1))/2;
-                                    MY_roi = (roi.y{tp}(2)-roi.y{tp}(1))/2;
-                                    %transform the coord of fix
-                                    %1. calc vec M_roi->fix (coord basis)
-                                    vec = fix_xy .* 0;
-                                    vec(:,1) =  MX_roi - fix_xy(:,1);
-                                    vec(:,2) =  MY_roi - fix_xy(:,2);
-                                    %2. rotate vec
-                                    rotvec = vec .* 0;
-                                    rotvec(:,1) = vec(:,1) .* cosd(roi.angle(tp)) - vec(:,2) .* sind(roi.angle(tp));
-                                    rotvec(:,2) = vec(:,2) .* cosd(roi.angle(tp)) + vec(:,1) .* sind(roi.angle(tp));
-                                    %3. add vec M_roi
-                                    fix_xy(:,1)= rotvec(:,1) + MX_roi;
-                                    fix_xy(:,2)= rotvec(:,2) + MY_roi;
-                                end;
-                            end;
-                        end;
-                        switch roi.type
-                            case 'rectangle'
-                                inside_area = (roi.x{tp}(1) < fix_xy(:,1) & roi.x{tp}(2) > fix_xy(:,1) & roi.y{tp}(1)< fix_xy(:,2) & roi.y{tp}(2) > fix_xy(:,2));
-                                area = (roi.x{tp}(2) - roi.x{tp}(1)) * (roi.y{tp}(2) - roi.y{tp}(1));
-                            case 'ellipse'
-                                %calc of foci coordinates (linear exzentricity)
-                                if (roi.x{tp}(2)-roi.x{tp}(1)) > (roi.y{tp}(2)-roi.y{tp}(1))
-                                    a = (roi.x{tp}(2)-roi.x{tp}(1))/2;
-                                    b = (roi.y{tp}(2)-roi.y{tp}(1))/2;
-                                    %x
-                                    F1(1) = roi.x{tp}(1) + a - sqrt(a^2 - b^2);
-                                    F2(1) = roi.x{tp}(2) - a + sqrt(a^2 - b^2);
-                                    %y
-                                    F1(2) = roi.y{tp}(1) + b;
-                                    F2(2) = F1(2);
-                                else
-                                    b = (roi.x{tp}(2)-roi.x{tp}(1))/2;
-                                    a = (roi.y{tp}(2)-roi.y{tp}(1))/2;
-                                    %x
-                                    F1(1) = roi.x{tp}(1) + b;
-                                    F2(1) = F1(1);
-                                    %y
-                                    F1(2) = roi.y{tp}(1) + a - sqrt(a^2 - b^2);
-                                    F2(2) = roi.y{tp}(2) - a + sqrt(a^2 - b^2);
-                                end;
-                                %calc distances (euklid) of P to foci
-                                PF1 = round(sqrt((fix_xy(:,1) - F1(1)).^2 + (fix_xy(:,2) - F1(2)).^2 ));
-                                PF2 = round(sqrt((fix_xy(:,1) - F2(1)).^2 + (fix_xy(:,2) - F2(2)).^2 ));
-                                %decision: fix_xy inside roi?
-                                inside_area = (PF1 + PF2 <= 2 * a);
-                                area = pi * a * b;
-                            case 'polygon'
-                                inside_area = inpoly(fix_xy,[roi.x{tp}(:)', roi.y{tp}(:)']);
-                                area = polyarea(roi.x{tp}(:), roi.y{tp}(:));
-                        end;
+        %searching for roi dimensions of valid = all
+        if ~flag_found
+            for i=1:length(roilist)
+                if strcmpi(roilist(i).tag1, varroi(5:end)) ||strcmp(roilist(i).tag2, varroi(5:end))
+                    if strcmpi(roilist(i).valid, 'all')
+                        flag_found=1;
+                        [area_act, inside_act] = checkROI(roilist(i),fix_xy,fix_ons, fix_dur);
+                        area = area + area_act;
+                        inside = inside | inside_act;
                     end;
-                    inside = inside | (inside_area & inside_time);
                 end;
-                return;  
-                
-                function [header, varlist]= head_montage(header, varlist, norm, roi, varabs, varrel, vartrl, varroi, trlID, c )
-                    
-                    global eye;
-                    
-                    if eye.stats.separatrows
-                        trllabel = '';
-                        headshort = header;
-                    else
-                        trllabel = [trlID  '_'];
-                    end;
-                    
-                    if eye.stats.covar
-                        covar_cols= eval(eye.stim.covar);
-                        for co =1:length(covar_cols)
-                            cov = ['cov' num2str(co)];
-                            header = [header ';' trllabel cov];
-                            varlist(end+1).var = cov;
-                            varlist(end).trl = c;
-                            varlist(end).trllabel = trlID;
-                        end;
-                    end;
-                    if eye.stats.trldur
-                        header = [header ';' trllabel  'dur' ];
-                        varlist(end+1).var = 'dur';
+            end;
+        end;
+    end;
+    
+end;
+%++++++++++++++++
+%roi name check
+%++++++++++++++++
+if flag_found==0
+    %searching for roi dimensions of valid = special pic
+    if ~isempty(pic)
+        for i=1:length(roilist)
+            if strcmpi(roilist(i).name, varroi)
+                if strfind(pic, roilist(i).valid)
+                    flag_found=1;
+                    [area, inside] = checkROI(roilist(i), fix_xy, fix_ons, fix_dur);
+                    break;
+                end;
+            end;
+        end;
+    end;
+    %searching for roi dimensions of valid = all
+    if ~flag_found
+        for i=1:length(roilist)
+            if strcmpi(roilist(i).name, varroi)
+                if strcmpi(roilist(i).valid, 'all')
+                    flag_found=1;
+                    [area, inside] = checkROI(roilist(i),fix_xy, fix_ons, fix_dur);
+                    break;
+                end;
+            end;
+        end;
+    end;
+end;
+
+return;
+%fixation check whether it belongs to roi:
+%criteria for dynamic rois: fixation duration is touched by roi duration
+function [area, inside] = checkROI(roi, fix_xy_ref, fix_ons, fix_dur)
+inside = false(size(fix_xy_ref,1),1);
+if length(fix_ons)~=length(fix_dur) || length(fix_dur) ~= size(fix_xy_ref,1)
+    error('error in filtering of fixation list');
+end;
+
+if ~isfield(roi, 'time')
+    roi.time=0;
+end;
+
+for tp=1:length(roi.time)
+    if roi.stop(tp)==0
+        fix_xy = fix_xy_ref;
+        
+        %filtering relevant fixations
+        %only valid for dynamic rois
+        if length(roi.time) > 1
+            roi_ons = roi.time(tp);
+            if tp < length(roi.time)
+                roi_dur = roi.time(tp+1) - roi_ons;
+            else
+                roi_dur = fix_ons(end)+ fix_dur(end) - roi_ons;
+            end;
+            %filtering all fixation with overlap between roi timepoint and fixation
+            inside_time = min(repmat(roi_ons + roi_dur, length(fix_dur),1),fix_ons + fix_dur) - max(repmat(roi_ons,length(fix_ons),1),fix_ons)>=0;
+        else
+            inside_time = true(size(fix_xy,1),1);
+        end;
+        
+        %coord trans of xy - rotation with angle around M_roi
+        %calc the center of the roi - the rotation is in GA limited rel. to the center
+        if ~strcmpi(roi.type,'polygon')
+            if ~isempty(roi.angle(tp))
+                if roi.angle(tp) ~= 0
+                    MX_roi = (roi.x{tp}(2)-roi.x{tp}(1))/2;
+                    MY_roi = (roi.y{tp}(2)-roi.y{tp}(1))/2;
+                    %transform the coord of fix
+                    %1. calc vec M_roi->fix (coord basis)
+                    vec = fix_xy .* 0;
+                    vec(:,1) =  MX_roi - fix_xy(:,1);
+                    vec(:,2) =  MY_roi - fix_xy(:,2);
+                    %2. rotate vec
+                    rotvec = vec .* 0;
+                    rotvec(:,1) = vec(:,1) .* cosd(roi.angle(tp)) - vec(:,2) .* sind(roi.angle(tp));
+                    rotvec(:,2) = vec(:,2) .* cosd(roi.angle(tp)) + vec(:,1) .* sind(roi.angle(tp));
+                    %3. add vec M_roi
+                    fix_xy(:,1)= rotvec(:,1) + MX_roi;
+                    fix_xy(:,2)= rotvec(:,2) + MY_roi;
+                end;
+            end;
+        end;
+        switch roi.type
+            case 'rectangle'
+                inside_area = (roi.x{tp}(1) < fix_xy(:,1) & roi.x{tp}(2) > fix_xy(:,1) & roi.y{tp}(1)< fix_xy(:,2) & roi.y{tp}(2) > fix_xy(:,2));
+                area = (roi.x{tp}(2) - roi.x{tp}(1)) * (roi.y{tp}(2) - roi.y{tp}(1));
+            case 'ellipse'
+                %calc of foci coordinates (linear exzentricity)
+                if (roi.x{tp}(2)-roi.x{tp}(1)) > (roi.y{tp}(2)-roi.y{tp}(1))
+                    a = (roi.x{tp}(2)-roi.x{tp}(1))/2;
+                    b = (roi.y{tp}(2)-roi.y{tp}(1))/2;
+                    %x
+                    F1(1) = roi.x{tp}(1) + a - sqrt(a^2 - b^2);
+                    F2(1) = roi.x{tp}(2) - a + sqrt(a^2 - b^2);
+                    %y
+                    F1(2) = roi.y{tp}(1) + b;
+                    F2(2) = F1(2);
+                else
+                    b = (roi.x{tp}(2)-roi.x{tp}(1))/2;
+                    a = (roi.y{tp}(2)-roi.y{tp}(1))/2;
+                    %x
+                    F1(1) = roi.x{tp}(1) + b;
+                    F2(1) = F1(1);
+                    %y
+                    F1(2) = roi.y{tp}(1) + a - sqrt(a^2 - b^2);
+                    F2(2) = roi.y{tp}(2) - a + sqrt(a^2 - b^2);
+                end;
+                %calc distances (euklid) of P to foci
+                PF1 = round(sqrt((fix_xy(:,1) - F1(1)).^2 + (fix_xy(:,2) - F1(2)).^2 ));
+                PF2 = round(sqrt((fix_xy(:,1) - F2(1)).^2 + (fix_xy(:,2) - F2(2)).^2 ));
+                %decision: fix_xy inside roi?
+                inside_area = (PF1 + PF2 <= 2 * a);
+                area = pi * a * b;
+            case 'polygon'
+                inside_area = inpoly(fix_xy,[roi.x{tp}(:)', roi.y{tp}(:)']);
+                area = polyarea(roi.x{tp}(:), roi.y{tp}(:));
+        end;
+    end;
+    inside = inside | (inside_area & inside_time);
+end;
+return;
+
+function [header, varlist]= head_montage(header, varlist, norm, roi, varabs, varrel, vartrl, varroi, trlID, c )
+
+global eye;
+
+if eye.stats.separatrows
+    trllabel = '';
+    headshort = header;
+else
+    trllabel = [trlID  '_'];
+end;
+
+if eye.stats.covar
+    covar_cols= eval(eye.stim.covar);
+    for co =1:length(covar_cols)
+        cov = ['cov' num2str(co)];
+        header = [header ';' trllabel cov];
+        varlist(end+1).var = cov;
+        varlist(end).trl = c;
+        varlist(end).trllabel = trlID;
+    end;
+end;
+if eye.stats.trldur
+    header = [header ';' trllabel  'dur' ];
+    varlist(end+1).var = 'dur';
+    varlist(end).trl = c;
+    varlist(end).trllabel = trlID;
+end;
+if eye.stats.valid
+    header = [header ';' trllabel  'err' ];
+    varlist(end+1).var = 'error';
+    varlist(end).trl = c;
+    varlist(end).trllabel = trlID;
+end;
+%2. stage times
+for tim = 1:length(eye.stats.times)
+    time = strrep(eye.stats.times{tim},'%','P');
+    time = strrep(time,'-','_');
+    % trial related, roi independend
+    for trl =1:length(vartrl)
+        header = [header ';' trllabel vartrl{trl} '_' time];
+        varlist(end+1).var = vartrl{trl};
+        varlist(end).trl = c;
+        varlist(end).trllabel = trlID;
+        varlist(end).time = eye.stats.times{tim};
+    end;
+    %roidependent
+    %3. stage - rois: tag1, tag2, single
+    for r = 1:length(roi)
+        %diverse roi variables:
+        for j=1:length(varroi)
+            header= [header ';' trllabel roi(r).name '_' varroi{j} '_' time ];
+            varlist(end+1).var = varroi{j};
+            varlist(end).trl = c;
+            varlist(end).trllabel = trlID;
+            varlist(end).roi = roi(r).name;
+            varlist(end).time = eye.stats.times{tim};
+        end;
+        %exception:no area norming for screen
+        if strcmp(roi(r).name,'screen')
+            %absolute variables
+            for j=1:length(varabs)
+                header= [header ';' trllabel roi(r).name '_' varabs{j} '_' time ];
+                varlist(end+1).var = varabs{j};
+                varlist(end).trl = c;
+                varlist(end).trllabel = trlID;
+                varlist(end).roi = roi(r).name;
+                varlist(end).norm = norm{1};
+                varlist(end).time = eye.stats.times{tim};
+            end;
+        else
+            %4. stage - normalize rois: yes, no
+            for n = 1:length(norm)
+                %5. stage - variables:
+                %absolute variables
+                for j=1:length(varabs)
+                    header= [header ';' trllabel roi(r).name norm{n} '_' varabs{j} '_' time ];
+                    varlist(end+1).var = varabs{j};
+                    varlist(end).trl = c;
+                    varlist(end).trllabel = trlID;
+                    varlist(end).roi = roi(r).name;
+                    varlist(end).norm = norm{n};
+                    varlist(end).time = eye.stats.times{tim};
+                end;
+                %relative variables
+                for j=1:length(varrel)
+                    for k=1:length(roi(r).rel)
+                        header= [header ';' trllabel roi(r).name '_' cell2mat(roi(r).rel{k}) norm{n} '_' varrel{j} '_' time ];
+                        varlist(end+1).var = varrel{j};
                         varlist(end).trl = c;
                         varlist(end).trllabel = trlID;
+                        varlist(end).roi = roi(r).name;
+                        varlist(end).roirel = cell2mat(roi(r).rel{k});
+                        varlist(end).norm = norm{n};
+                        varlist(end).time = eye.stats.times{tim};
                     end;
-                    if eye.stats.valid
-                        header = [header ';' trllabel  'err' ];
-                        varlist(end+1).var = 'error';
-                        varlist(end).trl = c;
-                        varlist(end).trllabel = trlID;
-                    end;
-                    %2. stage times
-                    for tim = 1:length(eye.stats.times)
-                        time = strrep(eye.stats.times{tim},'%','P');
-                        time = strrep(time,'-','_');
-                        % trial related, roi independend
-                        for trl =1:length(vartrl)
-                            header = [header ';' trllabel vartrl{trl} '_' time];
-                            varlist(end+1).var = vartrl{trl};
-                            varlist(end).trl = c;
-                            varlist(end).trllabel = trlID;
-                            varlist(end).time = eye.stats.times{tim};
-                        end;
-                        %roidependent
-                        %3. stage - rois: tag1, tag2, single
-                        for r = 1:length(roi)
-                            %diverse roi variables:
-                            for j=1:length(varroi)
-                                header= [header ';' trllabel roi(r).name '_' varroi{j} '_' time ];
-                                varlist(end+1).var = varroi{j};
-                                varlist(end).trl = c;
-                                varlist(end).trllabel = trlID;
-                                varlist(end).roi = roi(r).name;
-                                varlist(end).time = eye.stats.times{tim};
-                            end;
-                            %exception:no area norming for screen
-                            if strcmp(roi(r).name,'screen')
-                                %absolute variables
-                                for j=1:length(varabs)
-                                    header= [header ';' trllabel roi(r).name '_' varabs{j} '_' time ];
-                                    varlist(end+1).var = varabs{j};
-                                    varlist(end).trl = c;
-                                    varlist(end).trllabel = trlID;
-                                    varlist(end).roi = roi(r).name;
-                                    varlist(end).norm = norm{1};
-                                    varlist(end).time = eye.stats.times{tim};
-                                end;
-                            else
-                                %4. stage - normalize rois: yes, no
-                                for n = 1:length(norm)
-                                    %5. stage - variables:
-                                    %absolute variables
-                                    for j=1:length(varabs)
-                                        header= [header ';' trllabel roi(r).name norm{n} '_' varabs{j} '_' time ];
-                                        varlist(end+1).var = varabs{j};
-                                        varlist(end).trl = c;
-                                        varlist(end).trllabel = trlID;
-                                        varlist(end).roi = roi(r).name;
-                                        varlist(end).norm = norm{n};
-                                        varlist(end).time = eye.stats.times{tim};
-                                    end;
-                                    %relative variables
-                                    for j=1:length(varrel)
-                                        for k=1:length(roi(r).rel)
-                                            header= [header ';' trllabel roi(r).name '_' cell2mat(roi(r).rel{k}) norm{n} '_' varrel{j} '_' time ];
-                                            varlist(end+1).var = varrel{j};
-                                            varlist(end).trl = c;
-                                            varlist(end).trllabel = trlID;
-                                            varlist(end).roi = roi(r).name;
-                                            varlist(end).roirel = cell2mat(roi(r).rel{k});
-                                            varlist(end).norm = norm{n};
-                                            varlist(end).time = eye.stats.times{tim};
-                                        end;
-                                    end;
-                                end;
-                            end;
-                        end;
-                    end;
-                    if c > 1 &&  eye.stats.separatrows
-                        header = headshort;
-                    end;
-                    return;
+                end;
+            end;
+        end;
+    end;
+end;
+if c > 1 &&  eye.stats.separatrows
+    header = headshort;
+end;
+return;
