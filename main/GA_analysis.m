@@ -175,10 +175,10 @@ switch action
                     co = str2double(varlist(j).var(4:end));
                     varlist(j).val = covar{trlNr,co};
                     %report duration
-                elseif strfind(varlist(j).var,'dur')
+                elseif strcmp(varlist(j).var,'dur')
                     ilabNr = trlIX(trlNr);
                     varlist(j).val = num2str(round(length(eyemove.data.display{ilabNr}) * ILAB.acqIntvl));
-                elseif strfind(varlist(j).var,'error')
+                elseif strcmp(varlist(j).var,'error')
                     ilabNr = trlIX(trlNr);
                     k = find(corr_par(:,1)<=ilabNr & corr_par(:,2)>=ilabNr);
                     if isnan(corr_par(k,3))
@@ -186,11 +186,11 @@ switch action
                     else
                         varlist(j).val = '0';
                     end;
-                elseif strfind(varlist(j).var,'blinks')
+                elseif strcmp(varlist(j).var,'blinks')
                     varlist(j).val = num2str(quality.blinkpoints);
-                elseif strfind(varlist(j).var,'points')
+                elseif strcmp(varlist(j).var,'points')
                     varlist(j).val = num2str(quality.datapoints);
-                elseif strfind(varlist(j).var,'snr')
+                elseif strcmp(varlist(j).var,'snr')
                     varlist(j).val = num2str(quality.snr);
                     %calculate variables
                 else
