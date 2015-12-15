@@ -56,7 +56,7 @@ function gui_events_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Update handles structure
-set(hObject,'doublebuffer', 'on');
+
 mainGUIhandle = varargin{1};
 handles.mainGUIhandle = mainGUIhandle;
 mainGUIdata = guidata(mainGUIhandle);

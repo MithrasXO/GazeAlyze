@@ -56,7 +56,7 @@ function gui_events_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Update handles structure
-set(hObject,'doublebuffer', 'on');
+
 mainGUIhandle = varargin{1};
 handles.mainGUIhandle = mainGUIhandle;
 mainGUIdata = guidata(mainGUIhandle);
@@ -86,22 +86,33 @@ set(handles.preview, 'position', apos);
 
 
 % build the callback that will be executed on scrolling
-
-clbk2 = ['set(',num2str(handles.scrollpanel,'%.13f'),',''position'',[', ...
-    num2str(bpos(1)),' ',num2str(bpos(2)),'-get(gcbo,''value'') ', num2str(bpos(3)), ...
-    ' ', num2str(bpos(4)),'])'];
-clbk1 = ['set(',num2str(handles.preview,'%.13f'),',''position'',[', ...
-    num2str(apos(1)),' ',num2str(apos(2)),'-get(gcbo,''value'') ', num2str(apos(3)), ...
-    ' ', num2str(apos(4)),'])'];
+if verLessThan('matlab','8.4.0')
+    % execute code for R2014a or earlier
+    clbk2 = ['set(',num2str(handles.scrollpanel,'%.13f'),',''position'',[', ...
+        num2str(bpos(1)),' ',num2str(bpos(2)),'-get(gcbo,''value'') ', num2str(bpos(3)), ...
+        ' ', num2str(bpos(4)),'])'];
+    clbk1 = ['set(',num2str(handles.preview,'%.13f'),',''position'',[', ...
+        num2str(apos(1)),' ',num2str(apos(2)),'-get(gcbo,''value'') ', num2str(apos(3)), ...
+        ' ', num2str(apos(4)),'])'];
+else
+    % execute code for R2014b or later    
+    clbk2 = ['set(handles.scrollpanel,''position'',[', ...
+        num2str(bpos(1)),' ',num2str(bpos(2)),'-get(''sld'',''value'') ', num2str(bpos(3)), ...
+        ' ', num2str(bpos(4)),'])'];
+    clbk1 = ['set(handles.preview,''position'',[', ...
+        num2str(apos(1)),' ',num2str(apos(2)),'-get(''sld'',''value'') ', num2str(apos(3)), ...
+        ' ', num2str(apos(4)),'])'];
+    
+end
 clbk = [clbk2 ',' clbk1];
 
 
 
 % create the slider
 if ymax > ymin
-    uicontrol('style','slider', ...
+    sld = uicontrol('style','slider', ...
         'units','normalized','position',ypos, ...
-        'callback',clbk,'min',ymin,'max',ymax,'value',0);
+        'callback',clbk,'min',ymin,'max',ymax,'value',0);   
 end;
 if strcmp(mainGUIdata.data.eye.cond.type, 'start/stop marker')
     
@@ -136,8 +147,8 @@ if strcmp(mainGUIdata.data.eye.cond.type, 'single marker/fixed length')
     set(handles.rb_singlemarker, 'Value', 1)
     set(handles.rb_start, 'Enable', 'off')
     set(handles.rb_end, 'Enable', 'off')
-    set(handles.ed_stop_string, 'Enable', 'off')    
-    set(handles.ed_timing, 'Enable', 'on')    
+    set(handles.ed_stop_string, 'Enable', 'off')
+    set(handles.ed_timing, 'Enable', 'on')
 end
 
 set(handles.rb_end,'Value', ~mainGUIdata.data.eye.cond.stop.fix_at_end);
@@ -148,7 +159,7 @@ if ~isempty(mainGUIdata.data.eye.cond.duration)
 end
 
 if ~isempty(mainGUIdata.data.eye.cond.offset)
-   set(handles.ed_offset,'String',mainGUIdata.data.eye.cond.offset);
+    set(handles.ed_offset,'String',mainGUIdata.data.eye.cond.offset);
 end
 
 if ~isempty(mainGUIdata.data.eye.cond.start.values)
@@ -385,7 +396,7 @@ lbstring = get(mainGUIdata.listbox_progress, 'String');
 lbstring = [lbstring; {'>>> Events updated <<<'}];
 
 if (get(handles.rb_startstop, 'Value') == 1)
-    [mainGUIdata.data.eye.cond.type, lbstring ] =  GA_gui_get(lbstring, 'trials limited by: ', mainGUIdata.data.eye.cond.type, handles.rb_startstop, 'String');    
+    [mainGUIdata.data.eye.cond.type, lbstring ] =  GA_gui_get(lbstring, 'trials limited by: ', mainGUIdata.data.eye.cond.type, handles.rb_startstop, 'String');
 end
 
 if (get(handles.rb_singlemarker, 'Value') == 1)
@@ -612,9 +623,9 @@ if (get(handles.rb_startstop, 'Value') == 1)
     set(handles.rb_start, 'Enable', 'on');
     set(handles.rb_end, 'Enable', 'on');
     set(handles.ed_stop_string, 'Enable', 'on');
-     
+    
     set(handles.ed_timing, 'Enable', 'off');
-   
+    
     
 else
     set(handles.rb_start, 'Enable', 'off');
@@ -622,7 +633,7 @@ else
     set(handles.ed_stop_string, 'Enable', 'off');
     
     set(handles.ed_timing, 'Enable', 'on');
-   
+    
 end
 
 plotpreview(handles);

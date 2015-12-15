@@ -1,5 +1,4 @@
 function [eye] = GA_new_cntrl_template()
-
 eye.jobs.email = 0;
 eye.jobs.convert = 0;
 eye.jobs.correction = 0;
@@ -13,48 +12,33 @@ eye.jobs.saccades = 0;
 eye.jobs.pupil = 0;
 eye.jobs.heatmaps = 0;
 eye.jobs.analysis = 0;
-
 eye.email_adress = 'test@test.de';
-eye.email_smtp='mail';
-
+eye.email_smtp = 'mail';
 eye.dir.raw = '';
 eye.dir.conv = '';
 eye.dir.results = '';
 eye.dir.stim = '';
 eye.dir.stimseq = '';
 eye.dir.fileid = '$id.txt';
-
 eye.stim.pic = '';
 eye.stim.col = 0;
 eye.stim.row = 0;
 eye.stim.covar = '';
 eye.roi_mode = 'static';
-
-% eye.ROI(1).name = '';
-% eye.ROI(1).x = '';
-% eye.ROI(1).y = '';
-% eye.ROI(1).type = '';
-% eye.ROI(1).valid = '';
-% eye.ROI(1).tag1 = '';
-% eye.ROI(1).tag2 = '';
-% eye.ROI(1).enabled = 0;
-
 eye.defaultscreen = [0 0 0 0];
 eye.blink.limits = [0 0 0 0];
-
-eye.datatype = '';
+eye.datatype = 'Viewpoint';
 eye.datatype_custval = '';
-
 eye.include.files = 'all';
 eye.include.pics = 'all';
 eye.include.trials = 'all';
-
 eye.cond.type = '';
 eye.cond.duration = 0;
 eye.cond.offset = 0;
 eye.cond.start.values = '';
 eye.cond.start.codes = '';
 eye.cond.stop.val = '';
+eye.cond.stop.fix_at_end = 0;
 eye.cond.flag_blocked = 0;
 eye.cond.flag_fixedgaze = 0;
 eye.cond.block.trlcnt = 0;
@@ -64,7 +48,6 @@ eye.cond.fix.offset = 0;
 eye.cond.fix.string = '';
 eye.cond.ILAB.trialcodes = '';
 eye.cond.ILAB.fixcodes = 0;
-eye.cond.stop.fix_at_end = 0;
 eye.cond.eprime.gaze_x = '10';
 eye.cond.eprime.gaze_y = '11';
 eye.cond.eprime.aqu_rate = [];
@@ -76,7 +59,6 @@ eye.corr.fix.xy = [0 0];
 eye.corr.blocked = 0;
 eye.corr.method = '';
 eye.corr.lastsac = 0;
-
 eye.plot.corr = 0;
 eye.plot.trl.path = 0;
 eye.plot.trl.fix = 0;
@@ -87,7 +69,6 @@ eye.plot.white = 0;
 eye.plot.ons = 0;
 eye.plot.dur = 0;
 eye.plot.xy = [0 0];
-
 eye.stats.covar = 0;
 eye.stats.trldur = 0;
 eye.stats.separatrows = 0;
@@ -108,14 +89,13 @@ eye.stats.fix.relrois = {};
 eye.stats.scanspat = 0;
 eye.stats.roi.all_stim_only = 0;
 eye.stats.roi.norm = 0;
-eye.stats.times = {}';
-eye.stats.roi_exp = {}';
+eye.stats.times = {};
+eye.stats.roi_exp = {};
 eye.stats.fname = '';
 eye.stats.valid = 0;
 eye.stats.sac.firstdir = 0;
 eye.stats.sac.firstlat = 0;
 eye.stats.qual = 0;
-
 eye.heatmap.screen = [0 0 0 0];
 eye.heatmap.group.type = 'all';
 eye.heatmap.dir.datafile = '';
@@ -126,7 +106,7 @@ eye.heatmap.creation.shiftpic = [0 0];
 eye.heatmap.creation.bocolor = '';
 eye.heatmap.creation.fixradius = 0;
 eye.heatmap.creation.transparency = 0;
-eye.heatmap.creation.filter  = '';
+eye.heatmap.creation.filter = '';
 eye.heatmap.creation.filteratt = 0;
 eye.heatmap.color.fixtype = '';
 eye.heatmap.color.stage0 = '';
@@ -160,14 +140,13 @@ eye.heatmap.color.color12 = '';
 eye.heatmap.color.color13 = '';
 eye.heatmap.color.color14 = '';
 eye.heatmap.color.color15 = '';
-
 eye.import.ROIall.picfilter = '';
 eye.import.ROIall.row_head = 0;
 eye.import.ROIall.row_data = 0;
 eye.import.ROIall.col_pics = 0;
-eye.import.ROIall.file  = '';
-
-eye.import.ROI(1).col_roi_name = '';
-eye.import.ROI(1).col_roi_tag = '';
-eye.import.ROI(1).col_roi_data = 0;
-eye.import.ROI(1).flag_BH = 0;
+eye.import.ROIall.file = '';
+eye.import.ROI.col_roi_name = '';
+eye.import.ROI.col_roi_tag = '';
+eye.import.ROI.col_roi_data = 0;
+eye.import.ROI.flag_BH = 0;
+eye.ROI = struct('name', {}, 'valid', {}, 'enabled', {}, 'tag1', {}, 'tag2', {}, 'x', {}, 'y', {}, 'angle', {}, 'time', {}, 'type', {}, 'stop', {});

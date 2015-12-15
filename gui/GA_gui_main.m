@@ -952,7 +952,7 @@ function Menu6_1_NewROI_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-GA_gui_ROIeditor(handles.GA_mainWin);
+fig = GA_gui_ROIeditor(handles.GA_mainWin);
 
 
 % --------------------------------------------------------------------

@@ -40,15 +40,19 @@ gui_State = struct('gui_Name',       mfilename, ...
     'gui_OutputFcn',  @GA_gui_ROIeditor_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
+
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
+
 end
 
 if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
-else
-    gui_mainfcn(gui_State, varargin{:});
+    
+else   
+        gui_mainfcn(gui_State, varargin{:});    
 end
+
 % End initialization code - DO NOT EDIT
 
 
@@ -86,17 +90,17 @@ end;
 if get(handles.tb_Video,'Value') == 0
     set(handles.txt_Video,'String', 'Static Picture');
     set(handles.txt_Video,'ForeGroundColor', [0,0,0]);
-    set(handles.pb_LoadImage,'String', 'Load Image');        
+    set(handles.pb_LoadImage,'String', 'Load Image');
 else
     set(handles.txt_Video,'String', 'Video');
     set(handles.pb_LoadImage,'String', 'Load Video');
-    set(handles.txt_Video,'ForeGroundColor', [.7,0,.7]);    
+    set(handles.txt_Video,'ForeGroundColor', [.7,0,.7]);
     handles.roicrtl=ui_roicontrol;
     set(handles.roicrtl.hdelete, 'Callback', {@roi_delete, handles});
     set(handles.roicrtl.hrecord, 'Callback', {@roi_record, handles});
     set(handles.roicrtl.hback, 'Callback', {@roi_back, handles});
     set(handles.roicrtl.hforward, 'Callback', {@roi_forward, handles});
-    set(handles.roicrtl.hend, 'Callback', {@roi_endpoint, handles});    
+    set(handles.roicrtl.hend, 'Callback', {@roi_endpoint, handles});
 end;
 
 %vertical slider
@@ -262,8 +266,8 @@ if ~isempty(handles.ROI) && isfield(handles, 'roiindex')
     content = cellstr(get(handles.lb_rois,'String'));
     
     delroi = content{handles.roiindex,1};
-    pos = strfind(delroi,' ->');    
-    delroiname = delroi(1:pos(1)-1);    
+    pos = strfind(delroi,' ->');
+    delroiname = delroi(1:pos(1)-1);
     delroivalid = delroi(pos(1)+4:pos(2)-1);
     
     numROIs = length(handles.ROI);
@@ -999,7 +1003,9 @@ end
 %  RADIOBUTTONS
 %--------------------------------------------------------------------------
 %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+function radio_up_SizeChangedFcn(hObject, eventdata, handles)
 
+guidata(hObject, handles);
 
 % --- Executes when selected object is changed in radio_up.
 function radio_up_SelectionChangeFcn(hObject, eventdata, handles)
@@ -1362,7 +1368,7 @@ handles.roi_timepoint = tp;
 if strcmpi(handles.roimode, 'static')
     handles.ROI(1, handles.roiindex).time=1;
     handles.ROI(1, handles.roiindex).stop=0;
-end;    
+end;
 
 set(handles.ed_tp,'String', tp)
 
